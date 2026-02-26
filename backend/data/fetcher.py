@@ -7,7 +7,6 @@ def fetch_ohlcv(symbol: str, start: str, end: str) -> pd.DataFrame:
     if df.empty:
         raise ValueError(f"No data returned for {symbol}")
     
-    # Flatten columns if multi-level
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
 
@@ -18,8 +17,6 @@ def fetch_ohlcv(symbol: str, start: str, end: str) -> pd.DataFrame:
     
     return df
 
-
-# Test it directly
 if __name__ == "__main__":
     data = fetch_ohlcv("NVDA", "2022-01-01", "2024-01-01")
     print(data.head())

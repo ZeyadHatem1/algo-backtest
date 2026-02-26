@@ -17,8 +17,8 @@ class BacktestRequest(BaseModel):
     initial_capital: float = 10000
     risk_per_trade: float = 100
     commission_pct: float = 0.1
-    stop_loss_pct: float = None
-    take_profit_pct: float = None
+    stop_loss_pct: float | None = None
+    take_profit_pct: float | None = None
 
 @router.post("/backtest")
 def backtest(req: BacktestRequest):

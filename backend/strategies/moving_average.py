@@ -18,7 +18,7 @@ class MovingAverageCrossover(BaseStrategy):
         df["slow_ma"] = self._calculate_ma(df["close"], self.long_window)
 
         df["signal"] = 0
-        # Crossover: today fast>slow but yesterday fast<=slow = buy
+        
         buy = (df["fast_ma"] > df["slow_ma"]) & (df["fast_ma"].shift(1) <= df["slow_ma"].shift(1))
         sell = (df["fast_ma"] < df["slow_ma"]) & (df["fast_ma"].shift(1) >= df["slow_ma"].shift(1))
 

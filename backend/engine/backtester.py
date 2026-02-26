@@ -18,9 +18,9 @@ def run_backtest(df: pd.DataFrame, initial_capital: float, risk_per_trade: float
         if position:
             exit_reason = None
             if position.should_stop_loss(price):
-                exit_reason = "stop_loss"
+                exit_reason = "stop loss"
             elif position.should_take_profit(price):
-                exit_reason = "take_profit"
+                exit_reason = "take profit"
             elif signal == -1:
                 exit_reason = "signal"
 
@@ -29,14 +29,14 @@ def run_backtest(df: pd.DataFrame, initial_capital: float, risk_per_trade: float
                 commission = proceeds * (commission_pct / 100)
                 capital += proceeds - commission
                 trades.append({
-                    "exit_date": str(date),
-                    "exit_price": price,
+                    "exit date": str(date),
+                    "exit price": price,
                     "pnl": proceeds - (position.entry_price * position.shares),
                     "reason": exit_reason
                 })
                 position = None
 
-        # Check entry condition
+        
         if signal == 1 and position is None:
             amount_to_invest = capital * (risk_per_trade / 100)
             commission = amount_to_invest * (commission_pct / 100)
@@ -50,4 +50,4 @@ def run_backtest(df: pd.DataFrame, initial_capital: float, risk_per_trade: float
         portfolio_value = capital + (position.current_value(price) if position else 0)
         equity_curve.append({"date": str(date), "value": portfolio_value})
 
-    return {"trades": trades, "equity_curve": equity_curve, "final_capital": capital}
+    return {"trades": trades, "equity curve": equity_curve, "final capital": capital}

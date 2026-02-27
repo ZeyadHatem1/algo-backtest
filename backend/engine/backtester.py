@@ -50,4 +50,4 @@ def run_backtest(df: pd.DataFrame, initial_capital: float, risk_per_trade: float
         portfolio_value = capital + (position.current_value(price) if position else 0)
         equity_curve.append({"date": str(date), "value": portfolio_value})
 
-    return {"trades": trades, "equity curve": equity_curve, "final capital": capital}
+    return {"trades": trades, "equity_curve": equity_curve, "final capital": capital}

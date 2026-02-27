@@ -17,5 +17,5 @@ def calculate_metrics(equity_curve: list, initial_capital: float) -> dict:
         "total_return_pct": round(total_return, 2),
         "sharpe_ratio": round(sharpe, 2),
         "max_drawdown_pct": round(max_drawdown, 2),
-        "final value": round(values.iloc[-1], 2)
+        "final_value": round(values.iloc[-1], 2)
     }

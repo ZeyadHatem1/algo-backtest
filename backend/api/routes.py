@@ -21,22 +21,14 @@ class BacktestRequest(BaseModel):
     commission_pct: float = 0.1
     stop_loss_pct: Optional[float] = None
     take_profit_pct: Optional[float] = None
-
-    # MA Crossover params
     short_window: Optional[int] = 20
     long_window: Optional[int] = 50
     ma_type: Optional[str] = "SMA"
-
-    # RSI params
     rsi_period: Optional[int] = 14
     rsi_oversold: Optional[float] = 30
     rsi_overbought: Optional[float] = 70
-
-    # Bollinger Bands params
     bb_period: Optional[int] = 20
     bb_num_std: Optional[float] = 2.0
-
-    # MACD params
     macd_fast: Optional[int] = 12
     macd_slow: Optional[int] = 26
     macd_signal: Optional[int] = 9
@@ -72,8 +64,25 @@ def backtest(req: BacktestRequest):
 
     metrics = calculate_metrics(result["equity_curve"], req.initial_capital)
 
+    benchmark_return = None
+    symbol_buyhold_return = None
+
+    try:
+        bdf = fetch_ohlcv("SPY", req.start_date, req.end_date)
+        benchmark_return = round((bdf["close"].iloc[-1] - bdf["close"].iloc[0]) / bdf["close"].iloc[0] * 100, 2)
+    except Exception:
+        pass
+
+    try:
+        sdf = fetch_ohlcv(req.symbol, req.start_date, req.end_date)
+        symbol_buyhold_return = round((sdf["close"].iloc[-1] - sdf["close"].iloc[0]) / sdf["close"].iloc[0] * 100, 2)
+    except Exception:
+        pass
+
     return {
         "metrics": metrics,
         "equity_curve": result["equity_curve"],
-        "trades": result["trades"]
+        "trades": result["trades"],
+        "benchmark_return": benchmark_return,
+        "symbol_buyhold_return": symbol_buyhold_return
     }

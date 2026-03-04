@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BacktestRequest, StrategyType } from '../types'
 
 interface Props {
@@ -45,11 +45,34 @@ const SYMBOLS = [
   'XOM', 'CVX', 'COP'
 ]
 
+const STORAGE_KEY = 'backtest_form'
+
+function loadForm(): BacktestRequest {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) return { ...defaultForm, ...JSON.parse(saved) }
+  } catch {}
+  return defaultForm
+}
+
 export default function ConfigForm({ onSubmit, loading }: Props) {
-  const [form, setForm] = useState<BacktestRequest>(defaultForm)
+  const [form, setForm] = useState<BacktestRequest>(loadForm)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(form))
+    } catch {}
+  }, [form])
 
   const update = (key: keyof BacktestRequest, value: any) => {
     setForm(prev => ({ ...prev, [key]: value }))
+  }
+
+  const resetForm = () => {
+    setForm(defaultForm)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {}
   }
 
   const numInput = (label: string, key: keyof BacktestRequest, optional = false) => (
@@ -68,7 +91,15 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
 
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
-      <h2 className="text-white text-lg font-semibold mb-4">Strategy Configuration</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-white text-lg font-semibold">Strategy Configuration</h2>
+        <button
+          onClick={resetForm}
+          className="text-sm text-gray-400 hover:text-white border border-gray-600 hover:border-gray-400 px-3 py-1 rounded-lg transition-colors"
+        >
+          Reset to Defaults
+        </button>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div>

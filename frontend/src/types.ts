@@ -5,6 +5,7 @@ export interface BacktestRequest {
   start_date: string
   end_date: string
   strategy: StrategyType
+  compare_strategies?: StrategyType[]
   initial_capital: number
   risk_per_trade: number
   commission_pct: number

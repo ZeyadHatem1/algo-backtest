@@ -3,11 +3,25 @@ import ConfigForm from './components/ConfigForm'
 import EquityChart from './components/EquityChart'
 import MetricsCard from './components/MetricsCard'
 import TradeLog from './components/TradeLog'
+import StrategyComparison from './components/StrategyComparison'
 import { runBacktest } from './api'
-import { BacktestRequest, BacktestResponse } from './types'
+import { BacktestRequest, BacktestResponse, StrategyType } from './types'
+
+const strategyLabels: Record<StrategyType, string> = {
+  ma_crossover: 'Moving Average Crossover',
+  rsi: 'RSI',
+  bollinger_bands: 'Bollinger Bands',
+  macd: 'MACD',
+}
+
+interface StrategyRun {
+  strategy: StrategyType
+  result: BacktestResponse
+}
 
 export default function App() {
   const [result, setResult] = useState<BacktestResponse | null>(null)
+  const [comparisonRuns, setComparisonRuns] = useState<StrategyRun[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentSymbol, setCurrentSymbol] = useState<string>('NVDA')
@@ -16,9 +30,26 @@ export default function App() {
     setLoading(true)
     setError(null)
     setCurrentSymbol(req.symbol)
+
+    const selected = req.compare_strategies && req.compare_strategies.length > 0
+      ? req.compare_strategies
+      : [req.strategy]
+
+    const orderedStrategies = [
+      req.strategy,
+      ...selected.filter(s => s !== req.strategy),
+    ]
+
     try {
-      const data = await runBacktest(req)
-      setResult(data)
+      const responses = await Promise.all(
+        orderedStrategies.map(async (strategy) => ({
+          strategy,
+          result: await runBacktest({ ...req, strategy }),
+        }))
+      )
+
+      setComparisonRuns(responses)
+      setResult(responses.find(r => r.strategy === req.strategy)?.result ?? responses[0].result)
     } catch (e: any) {
       const detail = e.response?.data?.detail
       if (Array.isArray(detail)) {
@@ -55,6 +86,7 @@ export default function App() {
 
         {result && !loading && (
           <>
+            <StrategyComparison runs={comparisonRuns} labels={strategyLabels} />
             <MetricsCard
               metrics={result.metrics}
               benchmarkReturn={result.benchmark_return}

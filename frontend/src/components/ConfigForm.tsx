@@ -11,6 +11,7 @@ const defaultForm: BacktestRequest = {
   start_date: '2020-01-01',
   end_date: '2024-01-01',
   strategy: 'ma_crossover',
+  compare_strategies: ['ma_crossover', 'rsi', 'bollinger_bands', 'macd'],
   initial_capital: 10000,
   risk_per_trade: 100,
   commission_pct: 0.1,
@@ -50,7 +51,14 @@ const STORAGE_KEY = 'backtest_form'
 function loadForm(): BacktestRequest {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) return { ...defaultForm, ...JSON.parse(saved) }
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return {
+        ...defaultForm,
+        ...parsed,
+        compare_strategies: parsed.compare_strategies ?? defaultForm.compare_strategies,
+      }
+    }
   } catch {}
   return defaultForm
 }
@@ -73,6 +81,19 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
     try {
       localStorage.removeItem(STORAGE_KEY)
     } catch {}
+  }
+
+  const toggleCompareStrategy = (strategy: StrategyType) => {
+    const selected = form.compare_strategies ?? []
+    const next = selected.includes(strategy)
+      ? selected.filter(s => s !== strategy)
+      : [...selected, strategy]
+
+    if (next.length === 0) {
+      return
+    }
+
+    update('compare_strategies', next)
   }
 
   const numInput = (label: string, key: keyof BacktestRequest, optional = false) => (
@@ -133,7 +154,7 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
           />
         </div>
         <div>
-          <label className="text-gray-400 text-sm block mb-1">Strategy</label>
+          <label className="text-gray-400 text-sm block mb-1">Primary Strategy (details)</label>
           <select
             value={form.strategy}
             onChange={e => update('strategy', e.target.value as StrategyType)}
@@ -143,6 +164,33 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
               <option key={s} value={s}>{strategyLabels[s]}</option>
             ))}
           </select>
+        </div>
+      </div>
+
+      <div className="bg-gray-900/60 border border-gray-700 rounded-xl p-4 mb-4">
+        <p className="text-gray-300 text-sm mb-3">Compare Strategies Side by Side</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {(Object.keys(strategyLabels) as StrategyType[]).map((strategy) => {
+            const selected = (form.compare_strategies ?? []).includes(strategy)
+            return (
+              <label
+                key={strategy}
+                className={`flex items-center gap-3 p-2 rounded-lg border transition-colors cursor-pointer ${
+                  selected
+                    ? 'bg-blue-900/25 border-blue-700 text-white'
+                    : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => toggleCompareStrategy(strategy)}
+                  className="accent-blue-500"
+                />
+                <span className="text-sm">{strategyLabels[strategy]}</span>
+              </label>
+            )
+          })}
         </div>
       </div>
 
@@ -178,13 +226,21 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
         </>}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         {numInput('Initial Capital ($)', 'initial_capital')}
         {numInput('Risk Per Trade (%)', 'risk_per_trade')}
-        {numInput('Commission (%)', 'commission_pct')}
-        {numInput('Stop Loss (%)', 'stop_loss_pct', true)}
-        {numInput('Take Profit (%)', 'take_profit_pct', true)}
       </div>
+
+      <details className="bg-gray-900/60 border border-gray-700 rounded-xl p-4 mb-6 group">
+        <summary className="text-gray-300 text-sm cursor-pointer select-none group-open:mb-4">
+          Advanced Risk & Execution
+        </summary>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {numInput('Commission (%)', 'commission_pct')}
+          {numInput('Stop Loss (%)', 'stop_loss_pct', true)}
+          {numInput('Take Profit (%)', 'take_profit_pct', true)}
+        </div>
+      </details>
 
       <button
         onClick={() => onSubmit(form)}

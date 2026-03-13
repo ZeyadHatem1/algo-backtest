@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 from data.fetcher import fetch_ohlcv
 from strategies.moving_average import MovingAverageCrossover
 from strategies.rsi import RSIStrategy
@@ -34,6 +35,10 @@ class BacktestRequest(BaseModel):
     macd_signal: Optional[int] = 9
 
 
+def days_diff(d1: str, d2: str) -> int:
+    return abs((datetime.strptime(d1, "%Y-%m-%d") - datetime.strptime(d2, "%Y-%m-%d")).days)
+
+
 def get_strategy(req: BacktestRequest):
     if req.strategy == "ma_crossover":
         return MovingAverageCrossover(req.short_window, req.long_window, req.ma_type)
@@ -50,6 +55,17 @@ def get_strategy(req: BacktestRequest):
 @router.post("/backtest")
 def backtest(req: BacktestRequest):
     df = fetch_ohlcv(req.symbol, req.start_date, req.end_date)
+
+    if df is None or df.empty:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No data found for {req.symbol} in the selected date range. The stock may not have existed yet or the dates are invalid."
+        )
+
+    # Capture actual date range used
+    actual_start = str(df.index[0].date()) if hasattr(df.index[0], 'date') else str(df.index[0])[:10]
+    actual_end = str(df.index[-1].date()) if hasattr(df.index[-1], 'date') else str(df.index[-1])[:10]
+
     strategy = get_strategy(req)
     df = strategy.generate_signals(df)
 
@@ -69,20 +85,33 @@ def backtest(req: BacktestRequest):
 
     try:
         bdf = fetch_ohlcv("SPY", req.start_date, req.end_date)
-        benchmark_return = round((bdf["close"].iloc[-1] - bdf["close"].iloc[0]) / bdf["close"].iloc[0] * 100, 2)
+        if bdf is not None and not bdf.empty:
+            benchmark_return = round((bdf["close"].iloc[-1] - bdf["close"].iloc[0]) / bdf["close"].iloc[0] * 100, 2)
     except Exception:
         pass
 
     try:
         sdf = fetch_ohlcv(req.symbol, req.start_date, req.end_date)
-        symbol_buyhold_return = round((sdf["close"].iloc[-1] - sdf["close"].iloc[0]) / sdf["close"].iloc[0] * 100, 2)
+        if sdf is not None and not sdf.empty:
+            symbol_buyhold_return = round((sdf["close"].iloc[-1] - sdf["close"].iloc[0]) / sdf["close"].iloc[0] * 100, 2)
     except Exception:
         pass
+
+    # Only warn if dates differ by more than 7 days (ignores weekends/holidays)
+    date_adjusted = (
+        days_diff(actual_start, req.start_date) > 7 or
+        days_diff(actual_end, req.end_date) > 7
+    )
 
     return {
         "metrics": metrics,
         "equity_curve": result["equity_curve"],
         "trades": result["trades"],
         "benchmark_return": benchmark_return,
-        "symbol_buyhold_return": symbol_buyhold_return
+        "symbol_buyhold_return": symbol_buyhold_return,
+        "actual_start": actual_start,
+        "actual_end": actual_end,
+        "requested_start": req.start_date,
+        "requested_end": req.end_date,
+        "date_adjusted": date_adjusted
     }

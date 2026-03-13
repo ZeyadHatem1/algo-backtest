@@ -92,18 +92,46 @@ export default function App() {
         )}
 
         {result && !loading && (
-          <div style={{ animation: 'fadeIn 0.4s ease' }}>
-            <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-            <MetricsCard
-              metrics={result.metrics}
-              benchmarkReturn={result.benchmark_return}
-              symbolBuyholdReturn={result.symbol_buyhold_return}
-              symbol={currentSymbol}
-            />
-            <EquityChart data={result.equity_curve} initialCapital={10000} />
-            <TradeLog trades={result.trades} />
-          </div>
-        )}
+        <div style={{ animation: 'fadeIn 0.4s ease' }}>
+          <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+
+          {result.date_adjusted && (
+            <div style={{
+              background: '#1a1200',
+              border: '1px solid #3a2a00',
+              borderRadius: 8,
+              padding: '12px 16px',
+              marginBottom: 16,
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 12,
+              color: '#fbbf24',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4
+            }}>
+              <span style={{ fontWeight: 600, letterSpacing: '0.1em' }}>⚠ DATE RANGE ADJUSTED</span>
+              <span style={{ color: '#d4a96a', fontSize: 11 }}>
+                You requested {result.requested_start} → {result.requested_end}
+              </span>
+              <span style={{ color: '#d4a96a', fontSize: 11 }}>
+                Data available for {currentSymbol}: <span style={{ color: '#fbbf24' }}>{result.actual_start} → {result.actual_end}</span>
+              </span>
+              <span style={{ color: '#78716c', fontSize: 10, marginTop: 2 }}>
+                Returns are calculated from the first available trading day for this symbol.
+              </span>
+            </div>
+          )}
+
+          <MetricsCard
+            metrics={result.metrics}
+            benchmarkReturn={result.benchmark_return}
+            symbolBuyholdReturn={result.symbol_buyhold_return}
+            symbol={currentSymbol}
+          />
+          <EquityChart data={result.equity_curve} initialCapital={10000} />
+          <TradeLog trades={result.trades} />
+        </div>
+      )}
       </div>
     </div>
   )

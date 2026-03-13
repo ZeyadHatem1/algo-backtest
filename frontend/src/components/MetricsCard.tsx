@@ -7,64 +7,80 @@ interface Props {
   symbol: string
 }
 
+const C = {
+  accent: '#fbbf24',
+  positive: '#fbbf24',
+  negative: '#f87171',
+  card: '#120f08',
+  border: '#2a2010',
+  label: '#d4a96a',
+  text: '#fef9f0',
+}
+
 export default function MetricsCard({ metrics, benchmarkReturn, symbolBuyholdReturn, symbol }: Props) {
   const cards = [
     {
-      label: "Total Return",
+      label: 'TOTAL RETURN',
       value: `${metrics.total_return_pct}%`,
       sub: null,
-      color: metrics.total_return_pct >= 0 ? "text-green-400" : "text-red-400"
+      positive: metrics.total_return_pct >= 0
     },
     {
-      label: "vs SPY (Buy & Hold)",
-      value: benchmarkReturn != null ? `${benchmarkReturn}%` : "N/A",
+      label: 'VS SPY B&H',
+      value: benchmarkReturn != null ? `${benchmarkReturn}%` : 'N/A',
       sub: benchmarkReturn != null
-        ? metrics.total_return_pct >= benchmarkReturn
-          ? `+${(metrics.total_return_pct - benchmarkReturn).toFixed(2)}% outperformance`
-          : `${(metrics.total_return_pct - benchmarkReturn).toFixed(2)}% underperformance`
+        ? `${metrics.total_return_pct >= benchmarkReturn ? '+' : ''}${(metrics.total_return_pct - benchmarkReturn).toFixed(2)}% ${metrics.total_return_pct >= benchmarkReturn ? 'OUTPERFORM' : 'UNDERPERFORM'}`
         : null,
-      color: benchmarkReturn != null && metrics.total_return_pct >= benchmarkReturn
-        ? "text-green-400" : "text-red-400"
+      positive: benchmarkReturn != null && metrics.total_return_pct >= benchmarkReturn
     },
     {
-      label: `vs ${symbol} (Buy & Hold)`,
-      value: symbolBuyholdReturn != null ? `${symbolBuyholdReturn}%` : "N/A",
+      label: `VS ${symbol} B&H`,
+      value: symbolBuyholdReturn != null ? `${symbolBuyholdReturn}%` : 'N/A',
       sub: symbolBuyholdReturn != null
-        ? metrics.total_return_pct >= symbolBuyholdReturn
-          ? `+${(metrics.total_return_pct - symbolBuyholdReturn).toFixed(2)}% outperformance`
-          : `${(metrics.total_return_pct - symbolBuyholdReturn).toFixed(2)}% underperformance`
+        ? `${metrics.total_return_pct >= symbolBuyholdReturn ? '+' : ''}${(metrics.total_return_pct - symbolBuyholdReturn).toFixed(2)}% ${metrics.total_return_pct >= symbolBuyholdReturn ? 'OUTPERFORM' : 'UNDERPERFORM'}`
         : null,
-      color: symbolBuyholdReturn != null && metrics.total_return_pct >= symbolBuyholdReturn
-        ? "text-green-400" : "text-red-400"
+      positive: symbolBuyholdReturn != null && metrics.total_return_pct >= symbolBuyholdReturn
     },
     {
-      label: "Sharpe Ratio",
+      label: 'SHARPE RATIO',
       value: metrics.sharpe_ratio.toFixed(2),
-      sub: null,
-      color: metrics.sharpe_ratio >= 1 ? "text-green-400" : metrics.sharpe_ratio >= 0 ? "text-yellow-400" : "text-red-400"
+      sub: metrics.sharpe_ratio >= 1 ? 'GOOD' : metrics.sharpe_ratio >= 0 ? 'FAIR' : 'POOR',
+      positive: metrics.sharpe_ratio >= 1
     },
     {
-      label: "Max Drawdown",
+      label: 'MAX DRAWDOWN',
       value: `${metrics.max_drawdown_pct}%`,
       sub: null,
-      color: "text-red-400"
+      positive: false
     },
     {
-      label: "Final Value",
+      label: 'FINAL VALUE',
       value: `$${metrics.final_value.toLocaleString()}`,
       sub: null,
-      color: "text-white"
+      positive: true
     },
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 24 }}>
       {cards.map((card) => (
-        <div key={card.label} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-          <p className="text-gray-400 text-sm mb-1">{card.label}</p>
-          <p className={`text-2xl font-bold ${card.color}`}>{card.value}</p>
+        <div key={card.label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 16 }}>
+          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: C.label, letterSpacing: '0.12em', marginBottom: 8 }}>
+            {card.label}
+          </div>
+          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 22, fontWeight: 600, color: card.positive ? C.positive : C.negative, lineHeight: 1 }}>
+            {card.value}
+          </div>
           {card.sub && (
-            <p className={`text-xs mt-1 ${card.color}`}>{card.sub}</p>
+            <div style={{
+              fontFamily: 'IBM Plex Mono', fontSize: 10,
+              color: card.positive ? '#92610a' : '#7a2d2d',
+              background: card.positive ? 'rgba(41,33,0,0.6)' : 'rgba(58,26,26,0.6)',
+              borderRadius: 3, padding: '3px 6px', marginTop: 8,
+              letterSpacing: '0.05em', display: 'inline-block'
+            }}>
+              {card.sub}
+            </div>
           )}
         </div>
       ))}

@@ -3,25 +3,11 @@ import ConfigForm from './components/ConfigForm'
 import EquityChart from './components/EquityChart'
 import MetricsCard from './components/MetricsCard'
 import TradeLog from './components/TradeLog'
-import StrategyComparison from './components/StrategyComparison'
 import { runBacktest } from './api'
-import { BacktestRequest, BacktestResponse, StrategyType } from './types'
-
-const strategyLabels: Record<StrategyType, string> = {
-  ma_crossover: 'Moving Average Crossover',
-  rsi: 'RSI',
-  bollinger_bands: 'Bollinger Bands',
-  macd: 'MACD',
-}
-
-interface StrategyRun {
-  strategy: StrategyType
-  result: BacktestResponse
-}
+import { BacktestRequest, BacktestResponse } from './types'
 
 export default function App() {
   const [result, setResult] = useState<BacktestResponse | null>(null)
-  const [comparisonRuns, setComparisonRuns] = useState<StrategyRun[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentSymbol, setCurrentSymbol] = useState<string>('NVDA')
@@ -30,32 +16,20 @@ export default function App() {
     setLoading(true)
     setError(null)
     setCurrentSymbol(req.symbol)
-
-    const selected = req.compare_strategies && req.compare_strategies.length > 0
-      ? req.compare_strategies
-      : [req.strategy]
-
-    const orderedStrategies = [
-      req.strategy,
-      ...selected.filter(s => s !== req.strategy),
-    ]
-
     try {
-      const responses = await Promise.all(
-        orderedStrategies.map(async (strategy) => ({
-          strategy,
-          result: await runBacktest({ ...req, strategy }),
-        }))
-      )
-
-      setComparisonRuns(responses)
-      setResult(responses.find(r => r.strategy === req.strategy)?.result ?? responses[0].result)
+      const data = await runBacktest(req)
+      setResult(data)
     } catch (e: any) {
+      const status = e.response?.status
       const detail = e.response?.data?.detail
-      if (Array.isArray(detail)) {
+      if (!e.response) {
+        setError('Cannot connect to backend. Make sure the server is running on port 8000.')
+      } else if (status === 422 && Array.isArray(detail)) {
         setError(JSON.stringify(detail, null, 2))
+      } else if (detail?.includes('No data') || detail?.includes('date')) {
+        setError(`Date error: No data returned for ${req.symbol} in the selected date range. Try a wider range or check the dates.`)
       } else {
-        setError(detail || 'Something went wrong. Is the backend running?')
+        setError(detail || 'Something went wrong.')
       }
     } finally {
       setLoading(false)
@@ -63,39 +37,72 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Algo Backtest Engine</h1>
-          <p className="text-gray-400 mt-1">Test your trading strategies against historical data</p>
+    <div style={{ minHeight: '100vh', background: '#09080a' }}>
+      {/* Header */}
+      <div style={{ borderBottom: '1px solid #2a2010', padding: '16px 24px', marginBottom: 32 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 8px #fbbf24' }} />
+            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: '#fbbf24', letterSpacing: '0.15em' }}>
+              ALGO BACKTEST ENGINE
+            </span>
+          </div>
+          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#2a2010' }}>v1.0.0</span>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px 64px' }}>
+        <div style={{ marginBottom: 40 }}>
+          <h1 style={{ fontFamily: 'IBM Plex Sans', fontSize: '2.5rem', fontWeight: 300, color: '#fef9f0', letterSpacing: '-0.02em', lineHeight: 1.1, margin: 0 }}>
+            Strategy<br />
+            <span style={{ color: '#fbbf24', fontWeight: 600 }}>Backtester</span>
+          </h1>
+          <p style={{ marginTop: 12, fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#78716c', letterSpacing: '0.1em' }}>
+            TEST STRATEGIES AGAINST HISTORICAL MARKET DATA
+          </p>
         </div>
 
         <ConfigForm onSubmit={handleSubmit} loading={loading} />
 
         {error && (
-          <div className="bg-red-900 border border-red-700 text-red-300 rounded-xl p-4 mb-8 whitespace-pre-wrap">
-            {error}
+          <div style={{
+            background: '#100a0a', border: '1px solid #3a1a1a', borderRadius: 8,
+            padding: 16, marginBottom: 24, fontFamily: 'IBM Plex Mono',
+            fontSize: 12, color: '#f87171', whiteSpace: 'pre-wrap', letterSpacing: '0.02em'
+          }}>
+            ⚠ {error}
           </div>
         )}
 
         {loading && (
-          <div className="text-center py-16 text-gray-400 animate-pulse">
-            Running backtest...
+          <div style={{ padding: '80px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#fbbf24', letterSpacing: '0.2em' }}>
+              RUNNING BACKTEST
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {[0,1,2,3,4].map(i => (
+                <div key={i} style={{
+                  width: 3, height: 24, background: '#fbbf24', borderRadius: 2,
+                  animation: `bar 1s ease-in-out ${i * 0.12}s infinite alternate`
+                }} />
+              ))}
+            </div>
+            <style>{`@keyframes bar { from { opacity: 0.15; transform: scaleY(0.4); } to { opacity: 1; transform: scaleY(1); } }`}</style>
           </div>
         )}
 
         {result && !loading && (
-          <>
-            <StrategyComparison runs={comparisonRuns} labels={strategyLabels} />
+          <div style={{ animation: 'fadeIn 0.4s ease' }}>
+            <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
             <MetricsCard
               metrics={result.metrics}
               benchmarkReturn={result.benchmark_return}
               symbolBuyholdReturn={result.symbol_buyhold_return}
               symbol={currentSymbol}
             />
-            <EquityChart data={result.equity_curve} />
+            <EquityChart data={result.equity_curve} initialCapital={10000} />
             <TradeLog trades={result.trades} />
-          </>
+          </div>
         )}
       </div>
     </div>

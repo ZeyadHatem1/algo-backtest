@@ -80,16 +80,24 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 6,
   color: C.text,
   padding: '8px 12px',
-  fontSize: 13,
+  fontSize: 'clamp(13px, 3.2vw, 14px)',
   width: '100%',
   outline: 'none',
   fontFamily: 'IBM Plex Mono, monospace',
   transition: 'border-color 0.15s',
 }
 
+const selectStyle: React.CSSProperties = {
+  ...inputStyle,
+  appearance: 'none',
+  background: `linear-gradient(180deg, ${C.card}, ${C.bg})`,
+  paddingRight: 36,
+  cursor: 'pointer',
+}
+
 const labelStyle: React.CSSProperties = {
   color: C.label,
-  fontSize: 10,
+  fontSize: 'clamp(10px, 3vw, 11px)',
   letterSpacing: '0.12em',
   marginBottom: 6,
   display: 'block',
@@ -164,12 +172,27 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
 
   const hasAdvancedChanges = form.commission_pct !== 0.1 || form.stop_loss_pct !== null || form.take_profit_pct !== null
 
+  const selectWrapStyle: React.CSSProperties = {
+    position: 'relative',
+  }
+
+  const selectCaretStyle: React.CSSProperties = {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    fontSize: 'clamp(10px, 3vw, 11px)',
+    letterSpacing: '0.12em',
+    color: C.label,
+    pointerEvents: 'none',
+  }
+
   return (
     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24, marginBottom: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: C.accent, letterSpacing: '0.15em' }}>CONFIGURATION</span>
+        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 'clamp(11px, 3.2vw, 12px)', color: C.accent, letterSpacing: '0.15em' }}>CONFIGURATION</span>
         <button onClick={resetForm} style={{
-          fontFamily: 'IBM Plex Mono', fontSize: 10, color: C.muted,
+          fontFamily: 'IBM Plex Mono', fontSize: 'clamp(10px, 3vw, 11px)', color: C.muted,
           background: 'none', border: `1px solid ${C.border}`,
           borderRadius: 4, padding: '4px 10px', cursor: 'pointer', letterSpacing: '0.08em'
         }}
@@ -181,11 +204,14 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 16 }}>
         <div>
           <label style={labelStyle}>SYMBOL</label>
-          <select value={form.symbol} onChange={e => update('symbol', e.target.value)} style={inputStyle as any}
-            onFocus={e => (e.target as HTMLElement).style.borderColor = C.accent}
-            onBlur={e => (e.target as HTMLElement).style.borderColor = C.border}>
-            {SYMBOLS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <div style={selectWrapStyle}>
+            <select value={form.symbol} onChange={e => update('symbol', e.target.value)} style={selectStyle as any}
+              onFocus={e => (e.target as HTMLElement).style.borderColor = C.accent}
+              onBlur={e => (e.target as HTMLElement).style.borderColor = C.border}>
+              {SYMBOLS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <span style={selectCaretStyle}>▼</span>
+          </div>
         </div>
         <div>
           <label style={labelStyle}>START DATE</label>
@@ -203,19 +229,22 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
         </div>
         <div>
           <label style={labelStyle}>PRIMARY STRATEGY</label>
-          <select value={form.strategy} onChange={e => update('strategy', e.target.value as StrategyType)} style={inputStyle as any}
-            onFocus={e => (e.target as HTMLElement).style.borderColor = C.accent}
-            onBlur={e => (e.target as HTMLElement).style.borderColor = C.border}>
-            {(Object.keys(strategyLabels) as StrategyType[]).map(s => (
-              <option key={s} value={s}>{strategyLabels[s]}</option>
-            ))}
-          </select>
+          <div style={selectWrapStyle}>
+            <select value={form.strategy} onChange={e => update('strategy', e.target.value as StrategyType)} style={selectStyle as any}
+              onFocus={e => (e.target as HTMLElement).style.borderColor = C.accent}
+              onBlur={e => (e.target as HTMLElement).style.borderColor = C.border}>
+              {(Object.keys(strategyLabels) as StrategyType[]).map(s => (
+                <option key={s} value={s}>{strategyLabels[s]}</option>
+              ))}
+            </select>
+            <span style={selectCaretStyle}>▼</span>
+          </div>
         </div>
       </div>
 
       {dateError && (
         <div style={{
-          fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#f87171',
+          fontFamily: 'IBM Plex Mono', fontSize: 'clamp(11px, 3.2vw, 12px)', color: '#f87171',
           marginBottom: 12, padding: '8px 12px',
           background: '#100a0a', border: '1px solid #3a1a1a', borderRadius: 6
         }}>⚠ {dateError}</div>
@@ -228,7 +257,7 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
         padding: 16,
         marginBottom: 16,
       }}>
-        <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: C.label, letterSpacing: '0.12em', marginBottom: 12 }}>
+        <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 'clamp(10px, 3vw, 11px)', color: C.label, letterSpacing: '0.12em', marginBottom: 12 }}>
           COMPARE STRATEGIES (SIDE BY SIDE)
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
@@ -240,7 +269,7 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
                 padding: '8px 10px', borderRadius: 6,
                 border: `1px solid ${selected ? C.accent : C.border}`,
                 background: selected ? '#1a1406' : 'transparent',
-                cursor: 'pointer', fontFamily: 'IBM Plex Mono', fontSize: 11, color: C.text
+                cursor: 'pointer', fontFamily: 'IBM Plex Mono', fontSize: 'clamp(11px, 3.2vw, 12px)', color: C.text
               }}>
                 <input
                   type="checkbox"
@@ -261,12 +290,15 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
           {numInput('LONG WINDOW', 'long_window')}
           <div>
             <label style={labelStyle}>MA TYPE</label>
-            <select value={form.ma_type} onChange={e => update('ma_type', e.target.value)} style={inputStyle as any}
-              onFocus={e => (e.target as HTMLElement).style.borderColor = C.accent}
-              onBlur={e => (e.target as HTMLElement).style.borderColor = C.border}>
-              <option value="SMA">SMA</option>
-              <option value="EMA">EMA</option>
-            </select>
+            <div style={selectWrapStyle}>
+              <select value={form.ma_type} onChange={e => update('ma_type', e.target.value)} style={selectStyle as any}
+                onFocus={e => (e.target as HTMLElement).style.borderColor = C.accent}
+                onBlur={e => (e.target as HTMLElement).style.borderColor = C.border}>
+                <option value="SMA">SMA</option>
+                <option value="EMA">EMA</option>
+              </select>
+              <span style={selectCaretStyle}>▼</span>
+            </div>
           </div>
         </>}
         {form.strategy === 'rsi' && <>
@@ -292,7 +324,7 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
 
       <div style={{ marginBottom: 20 }}>
         <button onClick={() => setShowAdvanced(p => !p)} style={{
-          fontFamily: 'IBM Plex Mono', fontSize: 11,
+          fontFamily: 'IBM Plex Mono', fontSize: 'clamp(11px, 3.2vw, 12px)',
           color: hasAdvancedChanges ? C.accent : C.muted,
           background: 'none', border: 'none', cursor: 'pointer',
           letterSpacing: '0.1em', padding: 0,
@@ -320,7 +352,7 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
         background: loading || dateError ? C.accentDim : C.accent,
         color: loading || dateError ? C.muted : '#09080a',
         border: 'none', borderRadius: 8, padding: '14px',
-        fontFamily: 'IBM Plex Mono', fontSize: 13, fontWeight: 600,
+        fontFamily: 'IBM Plex Mono', fontSize: 'clamp(13px, 3.4vw, 14px)', fontWeight: 600,
         letterSpacing: '0.15em', cursor: loading || dateError ? 'not-allowed' : 'pointer',
         transition: 'all 0.2s'
       }}>

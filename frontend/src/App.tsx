@@ -75,11 +75,11 @@ export default function App() {
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', boxShadow: '0 0 8px #fbbf24' }} />
-            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: '#fbbf24', letterSpacing: '0.15em' }}>
+            <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 'clamp(12px, 3.4vw, 14px)', color: '#fbbf24', letterSpacing: '0.15em' }}>
               ALGO BACKTEST ENGINE
             </span>
           </div>
-          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#2a2010' }}>v1.0.0</span>
+          <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 'clamp(11px, 3vw, 12px)', color: '#2a2010' }}>v1.0.0</span>
         </div>
       </div>
 
@@ -89,7 +89,7 @@ export default function App() {
             Strategy<br />
             <span style={{ color: '#fbbf24', fontWeight: 600 }}>Backtester</span>
           </h1>
-          <p style={{ marginTop: 12, fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#78716c', letterSpacing: '0.1em' }}>
+          <p style={{ marginTop: 12, fontFamily: 'IBM Plex Mono', fontSize: 'clamp(11px, 3.2vw, 12px)', color: '#78716c', letterSpacing: '0.1em' }}>
             TEST STRATEGIES AGAINST HISTORICAL MARKET DATA
           </p>
         </div>
@@ -100,7 +100,7 @@ export default function App() {
           <div style={{
             background: '#100a0a', border: '1px solid #3a1a1a', borderRadius: 8,
             padding: 16, marginBottom: 24, fontFamily: 'IBM Plex Mono',
-            fontSize: 12, color: '#f87171', whiteSpace: 'pre-wrap', letterSpacing: '0.02em'
+            fontSize: 'clamp(12px, 3.2vw, 13px)', color: '#f87171', whiteSpace: 'pre-wrap', letterSpacing: '0.02em'
           }}>
             ⚠ {error}
           </div>
@@ -108,7 +108,7 @@ export default function App() {
 
         {loading && (
           <div style={{ padding: '80px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#fbbf24', letterSpacing: '0.2em' }}>
+            <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 'clamp(11px, 3.2vw, 12px)', color: '#fbbf24', letterSpacing: '0.2em' }}>
               RUNNING BACKTEST
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
@@ -135,20 +135,20 @@ export default function App() {
               padding: '12px 16px',
               marginBottom: 16,
               fontFamily: 'IBM Plex Mono',
-              fontSize: 12,
+              fontSize: 'clamp(12px, 3.2vw, 13px)',
               color: '#fbbf24',
               display: 'flex',
               flexDirection: 'column',
               gap: 4
             }}>
               <span style={{ fontWeight: 600, letterSpacing: '0.1em' }}>⚠ DATE RANGE ADJUSTED</span>
-              <span style={{ color: '#d4a96a', fontSize: 11 }}>
+              <span style={{ color: '#d4a96a', fontSize: 'clamp(11px, 3.2vw, 12px)' }}>
                 You requested {result.requested_start} → {result.requested_end}
               </span>
-              <span style={{ color: '#d4a96a', fontSize: 11 }}>
+              <span style={{ color: '#d4a96a', fontSize: 'clamp(11px, 3.2vw, 12px)' }}>
                 Data available for {currentSymbol}: <span style={{ color: '#fbbf24' }}>{result.actual_start} → {result.actual_end}</span>
               </span>
-              <span style={{ color: '#78716c', fontSize: 10, marginTop: 2 }}>
+              <span style={{ color: '#78716c', fontSize: 'clamp(10px, 3vw, 11px)', marginTop: 2 }}>
                 Returns are calculated from the first available trading day for this symbol.
               </span>
             </div>

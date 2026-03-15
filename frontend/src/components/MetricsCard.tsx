@@ -17,6 +17,12 @@ const C = {
   text: '#fef9f0',
 }
 
+function valueFontSize(value: string) {
+  if (value.length >= 16) return 16
+  if (value.length >= 13) return 18
+  return 22
+}
+
 export default function MetricsCard({ metrics, benchmarkReturn, symbolBuyholdReturn, symbol }: Props) {
   const cards = [
     {
@@ -57,7 +63,8 @@ export default function MetricsCard({ metrics, benchmarkReturn, symbolBuyholdRet
       label: 'FINAL VALUE',
       value: `$${metrics.final_value.toLocaleString()}`,
       sub: null,
-      positive: true
+      positive: true,
+      valueStyle: { fontSize: valueFontSize(`$${metrics.final_value.toLocaleString()}`), wordBreak: 'break-word' as const }
     },
   ]
 
@@ -65,15 +72,22 @@ export default function MetricsCard({ metrics, benchmarkReturn, symbolBuyholdRet
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 24 }}>
       {cards.map((card) => (
         <div key={card.label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 16 }}>
-          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: C.label, letterSpacing: '0.12em', marginBottom: 8 }}>
+          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 'clamp(10px, 3vw, 11px)', color: C.label, letterSpacing: '0.12em', marginBottom: 8 }}>
             {card.label}
           </div>
-          <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 22, fontWeight: 600, color: card.positive ? C.positive : C.negative, lineHeight: 1 }}>
+          <div style={{
+            fontFamily: 'IBM Plex Mono',
+            fontSize: card.valueStyle?.fontSize ?? 22,
+            fontWeight: 600,
+            color: card.positive ? C.positive : C.negative,
+            lineHeight: 1,
+            wordBreak: card.valueStyle?.wordBreak,
+          }}>
             {card.value}
           </div>
           {card.sub && (
             <div style={{
-              fontFamily: 'IBM Plex Mono', fontSize: 10,
+              fontFamily: 'IBM Plex Mono', fontSize: 'clamp(10px, 3vw, 11px)',
               color: card.positive ? '#92610a' : '#7a2d2d',
               background: card.positive ? 'rgba(41,33,0,0.6)' : 'rgba(58,26,26,0.6)',
               borderRadius: 3, padding: '3px 6px', marginTop: 8,

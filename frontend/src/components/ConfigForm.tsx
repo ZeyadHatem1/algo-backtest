@@ -11,6 +11,7 @@ const defaultForm: BacktestRequest = {
   start_date: '2020-01-01',
   end_date: '2024-01-01',
   strategy: 'ma_crossover',
+  compare_strategies: ['ma_crossover'],
   initial_capital: 10000,
   risk_per_trade: 100,
   commission_pct: 0.1,
@@ -50,7 +51,14 @@ const STORAGE_KEY = 'backtest_form'
 function loadForm(): BacktestRequest {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) return { ...defaultForm, ...JSON.parse(saved) }
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return {
+        ...defaultForm,
+        ...parsed,
+        compare_strategies: parsed.compare_strategies ?? defaultForm.compare_strategies,
+      }
+    }
   } catch {}
   return defaultForm
 }
@@ -125,6 +133,14 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
     try { localStorage.removeItem(STORAGE_KEY) } catch {}
   }
 
+  const toggleCompareStrategy = (strategy: StrategyType) => {
+    const selected = form.compare_strategies ?? []
+    const next = selected.includes(strategy)
+      ? selected.filter(s => s !== strategy)
+      : [...selected, strategy]
+    update('compare_strategies', next)
+  }
+
   const handleSubmit = () => {
     const err = validateDates(form.start_date, form.end_date)
     if (err) { setDateError(err); return }
@@ -186,7 +202,7 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
             onBlur={e => (e.target as HTMLInputElement).style.borderColor = dateError ? '#4a1a1a' : C.border} />
         </div>
         <div>
-          <label style={labelStyle}>STRATEGY</label>
+          <label style={labelStyle}>PRIMARY STRATEGY</label>
           <select value={form.strategy} onChange={e => update('strategy', e.target.value as StrategyType)} style={inputStyle as any}
             onFocus={e => (e.target as HTMLElement).style.borderColor = C.accent}
             onBlur={e => (e.target as HTMLElement).style.borderColor = C.border}>
@@ -204,6 +220,40 @@ export default function ConfigForm({ onSubmit, loading }: Props) {
           background: '#100a0a', border: '1px solid #3a1a1a', borderRadius: 6
         }}>⚠ {dateError}</div>
       )}
+
+      <div style={{
+        background: C.bg,
+        border: `1px solid ${C.border}`,
+        borderRadius: 8,
+        padding: 16,
+        marginBottom: 16,
+      }}>
+        <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: C.label, letterSpacing: '0.12em', marginBottom: 12 }}>
+          COMPARE STRATEGIES (SIDE BY SIDE)
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+          {(Object.keys(strategyLabels) as StrategyType[]).map((strategy) => {
+            const selected = (form.compare_strategies ?? []).includes(strategy)
+            return (
+              <label key={strategy} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '8px 10px', borderRadius: 6,
+                border: `1px solid ${selected ? C.accent : C.border}`,
+                background: selected ? '#1a1406' : 'transparent',
+                cursor: 'pointer', fontFamily: 'IBM Plex Mono', fontSize: 11, color: C.text
+              }}>
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => toggleCompareStrategy(strategy)}
+                  style={{ accentColor: C.accent }}
+                />
+                {strategyLabels[strategy]}
+              </label>
+            )
+          })}
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 16 }}>
         {form.strategy === 'ma_crossover' && <>

@@ -10,40 +10,73 @@ interface Props {
   labels: Record<StrategyType, string>
 }
 
+const C = {
+  accent: '#fbbf24',
+  card: '#120f08',
+  border: '#2a2010',
+  label: '#d4a96a',
+  text: '#fef9f0',
+  muted: '#78716c',
+  good: '#4ade80',
+  bad: '#f87171',
+}
+
 export default function StrategyComparison({ runs, labels }: Props) {
   if (runs.length <= 1) return null
 
   return (
-    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
-      <h2 className="text-white text-lg font-semibold mb-4">Side-by-Side Strategy Comparison</h2>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-700 text-gray-400">
-              <th className="text-left py-2 pr-4">Strategy</th>
-              <th className="text-left py-2 pr-4">Total Return</th>
-              <th className="text-left py-2 pr-4">Sharpe Ratio</th>
-              <th className="text-left py-2 pr-4">Max Drawdown</th>
-              <th className="text-left py-2 pr-4">Final Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {runs.map(({ strategy, result }) => {
-              const m = result.metrics
-              return (
-                <tr key={strategy} className="border-b border-gray-800 text-gray-200">
-                  <td className="py-3 pr-4 font-medium text-white">{labels[strategy]}</td>
-                  <td className={`py-3 pr-4 ${m.total_return_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {m.total_return_pct}%
-                  </td>
-                  <td className="py-3 pr-4">{m.sharpe_ratio.toFixed(2)}</td>
-                  <td className="py-3 pr-4 text-red-400">{m.max_drawdown_pct}%</td>
-                  <td className="py-3 pr-4">${m.final_value.toLocaleString()}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24, marginBottom: 24 }}>
+      <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: C.accent, letterSpacing: '0.15em', marginBottom: 16 }}>
+        STRATEGY COMPARISON
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <div style={{ minWidth: 640 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+            gap: 12,
+            borderBottom: `1px solid ${C.border}`,
+            paddingBottom: 8,
+            marginBottom: 8,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 10,
+            letterSpacing: '0.12em',
+            color: C.label,
+          }}>
+            <div>STRATEGY</div>
+            <div>TOTAL RETURN</div>
+            <div>SHARPE</div>
+            <div>MAX DD</div>
+            <div>FINAL VALUE</div>
+          </div>
+          {runs.map(({ strategy, result }) => {
+            const m = result.metrics
+            return (
+              <div
+                key={strategy}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+                  gap: 12,
+                  padding: '10px 0',
+                  borderBottom: `1px solid ${C.border}`,
+                  fontFamily: 'IBM Plex Mono',
+                  fontSize: 12,
+                  color: C.text,
+                }}
+              >
+                <div style={{ fontWeight: 600 }}>{labels[strategy]}</div>
+                <div style={{ color: m.total_return_pct >= 0 ? C.good : C.bad }}>{m.total_return_pct}%</div>
+                <div>{m.sharpe_ratio.toFixed(2)}</div>
+                <div style={{ color: C.bad }}>{m.max_drawdown_pct}%</div>
+                <div>${m.final_value.toLocaleString()}</div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+      <div style={{ marginTop: 8, fontFamily: 'IBM Plex Mono', fontSize: 10, color: C.muted, letterSpacing: '0.08em' }}>
+        COMPARING SELECTED STRATEGIES ON THE SAME SYMBOL AND DATE RANGE
       </div>
     </div>
   )

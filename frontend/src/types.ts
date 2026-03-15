@@ -5,6 +5,7 @@ export interface BacktestRequest {
   start_date: string
   end_date: string
   strategy: StrategyType
+  compare_strategies?: StrategyType[]
   initial_capital: number
   risk_per_trade: number
   commission_pct: number
@@ -51,9 +52,9 @@ export interface BacktestResponse {
   trades: Trade[]
   benchmark_return: number | null
   symbol_buyhold_return: number | null
-  actual_start: string
-  actual_end: string
-  requested_start: string
-  requested_end: string
-  date_adjusted: boolean
+  actual_start?: string
+  actual_end?: string
+  requested_start?: string
+  requested_end?: string
+  date_adjusted?: boolean
 }
